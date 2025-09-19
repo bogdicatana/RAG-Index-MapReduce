@@ -1,4 +1,4 @@
-package pdf
+package util
 
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument

@@ -1,4 +1,4 @@
-import pdf.PdfProcessor
+import util.PdfProcessor
 
 object Main {
     def main(args: Array[String]): Unit = {
