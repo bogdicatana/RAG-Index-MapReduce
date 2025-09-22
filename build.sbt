@@ -17,6 +17,10 @@ lazy val root = (project in file("."))
             "com.softwaremill.sttp.client3" %% "circe" % "3.11.0",
             "io.circe" %% "circe-generic" % "0.14.14",
             "io.circe" %% "circe-parser"  % "0.14.14",
-            "ch.qos.logback" % "logback-classic" % "1.5.18"
+            "ch.qos.logback" % "logback-classic" % "1.5.18",
+            // Config library
+            "com.typesafe" % "config" % "1.4.5",
+            "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.4.2",
+            "org.apache.hadoop" % "hadoop-common" % "3.4.2"
         )
     )
