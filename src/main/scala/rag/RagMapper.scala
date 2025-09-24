@@ -24,7 +24,7 @@ object RagMapper extends Mapper[LongWritable, Text, IntWritable, Text] {
         // Calculate shard ID (partition based on docId hash)
         val numReducers = context.getNumReduceTasks
         val shard = if (numReducers > 0) Math.abs(docId.hashCode) % numReducers else 0
-
+        logger.info(s"Processing document: $docId with ${chunks.length} chunks, assigned to shard $shard")
         // Emit each chunk with embedding as JSON string
         chunks.zip(embeddings).zipWithIndex.foreach { case ((chunk, vec), chunkId) =>
             val json = s"""{"doc_id":"$docId","chunk_id":$chunkId,"text":${encodeJson(chunk)},"vec":[${vec.mkString(",")}]}"""
