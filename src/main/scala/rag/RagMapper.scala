@@ -7,8 +7,8 @@ import org.slf4j.LoggerFactory
 
 import java.nio.file.Paths
 
-object RagMapper extends Mapper[LongWritable, Text, IntWritable, Text] {
-    private val logger = LoggerFactory.getLogger(classOf[rag.RagMapper.type])
+class RagMapper extends Mapper[LongWritable, Text, IntWritable, Text] {
+    private val logger = LoggerFactory.getLogger(classOf[RagMapper])
     private val model = Settings.ollama.embeddingModel
     private val client = new Ollama(Settings.ollama.host)
 
