@@ -5,6 +5,8 @@ import sttp.client3.circe.*
 import io.circe.*
 import io.circe.parser.*
 import io.circe.syntax.*
+import scala.concurrent.duration.DurationInt
+
 
 class Ollama(base: String):
     private val backend = HttpClientSyncBackend()
@@ -69,8 +71,8 @@ class Ollama(base: String):
         val req = basicRequest
             .post(chatUrl)
             .body(json.noSpaces)
-            .contentType("application/json")
             .response(asStringAlways)
+            .readTimeout(5.minutes)
 
         val res = req.send(backend)
 

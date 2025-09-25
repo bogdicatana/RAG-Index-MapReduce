@@ -11,6 +11,7 @@ lazy val root = (project in file("."))
             // Retrieval index (pure JVM, cross-platform)
             "org.apache.lucene" % "lucene-core" % "10.3.0",
             "org.apache.lucene" % "lucene-analysis-common" % "10.3.0",
+            "org.apache.lucene" % "lucene-queryparser" % "10.3.0",
             // PDF extraction + HTTP + JSON
             "org.apache.pdfbox" % "pdfbox" % "3.0.5",
             "com.softwaremill.sttp.client3" %% "core"  % "3.11.0",
@@ -21,6 +22,9 @@ lazy val root = (project in file("."))
             // Config library
             "com.typesafe" % "config" % "1.4.5",
             "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.4.2",
-            "org.apache.hadoop" % "hadoop-common" % "3.4.2"
+            "org.apache.hadoop" % "hadoop-common" % "3.4.2",
+            "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % "3.4.2",
+            "org.scalactic" %% "scalactic" % "3.2.19",
+            "org.scalatest" %% "scalatest" % "3.2.19" % "test"
         )
     )
