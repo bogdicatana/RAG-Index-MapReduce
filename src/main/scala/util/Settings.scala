@@ -1,6 +1,7 @@
 package util
 
 import com.typesafe.config.ConfigFactory
+import scala.jdk.CollectionConverters.*
 
 object Settings {
     private val config = ConfigFactory.load()
@@ -20,4 +21,27 @@ object Settings {
         config.getInt("rag-builder.chunker.max-chars"),
         config.getInt("rag-builder.chunker.overlap")
     )
+    
+    lazy val inputPDFS : String = {
+        config.getString("rag-builder.input.pdfs")
+    }
+
+    // --- 🧠 Word Relation Settings ---
+    lazy val similarityPairs: Seq[(String, String)] = {
+        config.getList("rag-builder.word-relations.similarities")
+            .asScala
+            .map { entry =>
+                val lst = entry.unwrapped().asInstanceOf[java.util.List[String]].asScala
+                (lst.head, lst(1))
+            }.toSeq
+    }
+
+    lazy val analogyTriplets: Seq[(String, String, String)] = {
+        config.getList("rag-builder.word-relations.analogies")
+            .asScala
+            .map { entry =>
+                val lst = entry.unwrapped().asInstanceOf[java.util.List[String]].asScala
+                (lst.head, lst(1), lst(2))
+            }.toSeq
+    }
 }

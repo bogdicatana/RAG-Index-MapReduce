@@ -107,6 +107,6 @@ object StatsMerger {
             }
         }
 
-        println(s"Merged ${shardFiles.length} $prefix files -> ${mergedPath}")
+        println(s"Merged ${shardFiles.length} $prefix files -> $mergedPath")
     }
 }

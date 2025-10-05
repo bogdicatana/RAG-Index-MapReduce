@@ -8,7 +8,6 @@ import rag.*
 
 object Main {
     def main(args: Array[String]): Unit = {
-        val ollama = new rag.Ollama(sys.env.getOrElse("OLLAMA_HOST", "http://localhost:11434"))
 
         val conf = new Configuration(false) // start with empty config, ignore system XMLs
         conf.set("mapreduce.framework.name", "local")

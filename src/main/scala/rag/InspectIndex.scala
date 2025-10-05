@@ -1,10 +1,10 @@
 package rag
-import org.apache.lucene.store.FSDirectory
 import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.search.{IndexSearcher, KnnFloatVectorQuery}
-import java.nio.file.Paths
-import rag.Ollama
+import org.apache.lucene.store.FSDirectory
 import util.Settings
+
+import java.nio.file.Paths
 
 object InspectIndex {
     def main(args: Array[String]): Unit = {
@@ -31,7 +31,7 @@ object InspectIndex {
         val ollama = new Ollama(Settings.ollama.host)
         val queryText = "What is this document about?"
         val queryEmbedding: Array[Float] =
-            ollama.embed(Vector(queryText), Settings.ollama.embeddingModel).head.map(_.toFloat).toArray
+            ollama.embed(Vector(queryText), Settings.ollama.embeddingModel).head.map(identity).toArray
 
         val query = new KnnFloatVectorQuery("vec", queryEmbedding, 2)
         val hits = searcher.search(query, 2)

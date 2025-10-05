@@ -25,6 +25,10 @@ lazy val root = (project in file("."))
             "org.apache.hadoop" % "hadoop-common" % "3.4.2",
             "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % "3.4.2",
             "org.scalactic" %% "scalactic" % "3.2.19",
-            "org.scalatest" %% "scalatest" % "3.2.19" % "test"
+            "org.apache.hadoop" % "hadoop-common" % "3.3.6" % Test,
+            "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.3.6" % Test,
+            "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % "3.3.6" % Test,
+            "org.scalatest" %% "scalatest" % "3.2.17" % Test,
+            "org.apache.hadoop" % "hadoop-minicluster" % "3.3.6" % Test
         )
     )

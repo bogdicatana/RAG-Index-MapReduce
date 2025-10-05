@@ -1,27 +1,20 @@
 package rag
 
-import java.nio.file.{Files, Path}
-import java.io.IOException
-
-import org.apache.hadoop.fs.{FileSystem, Path => HPath}
+import io.circe.parser.parse
+import org.apache.hadoop.fs.{FileSystem, Path as HPath}
 import org.apache.hadoop.io.{IntWritable, Text}
 import org.apache.hadoop.mapreduce.Reducer
-
-import io.circe.parser.parse
-import io.circe.HCursor
-
-import org.apache.lucene.document._
-import org.apache.lucene.index._
-import org.apache.lucene.store.FSDirectory
 import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.index.VectorSimilarityFunction
+import org.apache.lucene.document.*
+import org.apache.lucene.index.*
+import org.apache.lucene.store.FSDirectory
 import org.slf4j.LoggerFactory
 
-import scala.jdk.CollectionConverters._
+import java.io.{IOException, PrintWriter}
+import java.nio.file.{Files, Path}
+import scala.jdk.CollectionConverters.*
+import scala.util.Using
 import util.Settings
-
-import java.io.PrintWriter
-import scala.util.{Try, Using}
 
 class ShardReducer extends Reducer[IntWritable, Text, Text, Text] {
     private val logger = LoggerFactory.getLogger(classOf[ShardReducer])
@@ -33,6 +26,7 @@ class ShardReducer extends Reducer[IntWritable, Text, Text, Text] {
                        ): Unit = {
 
         val shard = key.get()
+        logger.info(s"Starting reduce for shard $shard")
         val localDir: Path = Files.createTempDirectory(s"lucene-shard-$shard")
         val dir = FSDirectory.open(localDir)
         val iwConfig = new IndexWriterConfig(new StandardAnalyzer())
@@ -41,28 +35,35 @@ class ShardReducer extends Reducer[IntWritable, Text, Text, Text] {
         // --- Parse documents safely ---
         case class ParsedDoc(id: String, chunkId: String, text: String, vec: Array[Float], doc: Document)
 
+        // --- Parse documents safely ---
         val parsedDocs: Seq[ParsedDoc] = values.asScala.flatMap { t =>
             parse(t.toString).toOption.flatMap { jsonVal =>
                 val cursor = jsonVal.hcursor
-                for {
-                    docId <- cursor.get[String]("doc_id").toOption
-                    chunkId <- cursor.get[Int]("chunk_id").map(_.toString).toOption
-                    text <- cursor.get[String]("text").toOption
-                    vec <- cursor.get[Vector[Float]]("vec").map(_.toArray).toOption
-                } yield {
+                try {
+                    val docId = cursor.get[String]("doc_id").getOrElse("")
+                    val chunkId = cursor.get[Int]("chunk_id").map(_.toString).getOrElse("")
+                    val text = cursor.get[String]("text").getOrElse("")
+                    val vec = cursor.get[Vector[Float]]("vec").getOrElse(Vector.empty).toArray
+
                     val doc = new Document()
                     doc.add(new StringField("doc_id", docId, Field.Store.YES))
                     doc.add(new StringField("chunk_id", chunkId, Field.Store.YES))
                     doc.add(new TextField("text", text, Field.Store.YES))
                     doc.add(new KnnFloatVectorField("vec", vec, VectorSimilarityFunction.COSINE))
                     iw.addDocument(doc)
-                    ParsedDoc(docId, chunkId, text, vec, doc)
+                    Some(ParsedDoc(docId, chunkId, text, vec, doc))
+                } catch {
+                    case e: Exception =>
+                        logger.warn(s"Failed to parse doc: ${t.toString.take(200)}", e)
+                        None
                 }
             }
         }.toSeq
 
         iw.close()
         dir.close()
+
+        logger.info(s"Shard $shard parsed ${parsedDocs.size} documents")
 
         val hadoopConf = context.getConfiguration
         val fs = FileSystem.get(hadoopConf)
@@ -71,6 +72,8 @@ class ShardReducer extends Reducer[IntWritable, Text, Text, Text] {
         val hdfsIndexPath = new HPath(outputPathStr, s"index_shard_$shard")
         copyLocalToHdfs(localDir, hdfsIndexPath, fs)
         context.write(new Text(shard.toString), new Text(hdfsIndexPath.toString))
+        logger.info(s"Shard $shard Lucene index written to $hdfsIndexPath")
+
 
         // --- Statistics ---
         val statsDir = new HPath(outputPathStr, s"stats_shard_$shard")
@@ -85,6 +88,8 @@ class ShardReducer extends Reducer[IntWritable, Text, Text, Text] {
         }
         val vocabCounts = tokenized.groupBy(identity).view.mapValues(_.size.toLong).toMap
         val sortedVocab = vocabCounts.toSeq.sortBy(-_._2)
+
+        logger.info(s"Shard $shard wrote ${sortedVocab.size} vocab entries")
 
         Using.resource(new PrintWriter(fs.create(new HPath(statsDir, s"vocab_shard_$shard.csv")))) { out =>
             out.println("word,freq")
@@ -131,16 +136,16 @@ class ShardReducer extends Reducer[IntWritable, Text, Text, Text] {
         Using.resource(new PrintWriter(fs.create(new HPath(statsDir, s"neighbors_shard_$shard.csv")))) { out =>
             neighborLines.foreach(out.println)
         }
+        logger.info(s"Shard $shard wrote ${neighborLines.size - 1} neighbor entries")
 
-        // Similarity pairs: pair each top token with its next token in frequency
-        // Hardcoded similarity pairs
-        val similarityPairs = Seq(
-            ("function", "variable"),
-            ("type", "variable"),
-            ("addition", "deletion"),
-            ("program", "software"),
-            ("AST", "structure")
-        )
+        // Similarity pairs
+        val similarityPairs = try {
+            Settings.similarityPairs
+        } catch {
+            case e: Exception =>
+                logger.warn("Failed to load similarity pairs from Settings, using empty set", e)
+                Seq.empty[(String, String)]
+        }
 
         val simLines =
             "word1,word2,similarity" +:
@@ -155,14 +160,16 @@ class ShardReducer extends Reducer[IntWritable, Text, Text, Text] {
             simLines.foreach(out.println)
         }
 
-        // Analogy triplets: a:b :: c:? using top tokens sliding window
-        // Hardcoded analogy triplets
-        val analogyTriplets = Seq(
-            ("function", "variable", "type"),
-            ("addition", "deletion", "change"),
-            ("program", "software", "repository"),
-            ("AST", "structure", "diff")
-        )
+        logger.info(s"Shard $shard wrote ${simLines.size - 1} similarity entries")
+
+        // Analogy triplets: a:b :: c:?
+        val analogyTriplets = try {
+            Settings.analogyTriplets
+        } catch {
+            case e: Exception =>
+                logger.warn("Failed to load analogy triplets from SettingsUtil, using empty set", e)
+                Seq.empty[(String, String, String)]
+        }
 
         val anaLines =
             "a,b,c,predicted,score" +:
@@ -173,6 +180,7 @@ class ShardReducer extends Reducer[IntWritable, Text, Text, Text] {
                         vc <- tokenVectors.get(c)
                         analogy = va.zip(vb).zip(vc).map { case ((xa, xb), xc) => xa - xb + xc }
                         best = tokenVectors
+                            .view
                             .filterKeys(k => k != a && k != b && k != c)
                             .map { case (tok, vec) => tok -> cosine(analogy, vec) }
                             .maxByOption(_._2)
@@ -183,7 +191,12 @@ class ShardReducer extends Reducer[IntWritable, Text, Text, Text] {
             anaLines.foreach(out.println)
         }
 
+        logger.info(s"Shard $shard wrote ${anaLines.size - 1} analogy entries")
+
+
         context.write(new Text(s"stats_shard_$shard"), new Text("completed"))
+        logger.info(s"Shard $shard completed successfully")
+
     }
 
 
