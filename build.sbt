@@ -7,6 +7,19 @@ ThisBuild / scalaVersion := "3.3.6"
 lazy val root = (project in file("."))
     .settings(
         name := "cs441hw1",
+        assembly / assemblyMergeStrategy := {
+            case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
+            case PathList("META-INF", "INDEX.LIST") => MergeStrategy.discard
+            case PathList("META-INF", xs @ _*) if xs.last.endsWith(".SF") ||
+                xs.last.endsWith(".DSA") ||
+                xs.last.endsWith(".RSA") =>
+                MergeStrategy.discard
+
+            // concat all service loader files
+            case PathList("META-INF", "services", xs @ _*) => MergeStrategy.concat
+
+            case x => MergeStrategy.first
+        },
         libraryDependencies ++= Seq(
             // Retrieval index (pure JVM, cross-platform)
             "org.apache.lucene" % "lucene-core" % "10.3.0",

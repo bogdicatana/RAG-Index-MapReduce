@@ -39,6 +39,8 @@ object Main {
         } else {
             conf.set("fs.defaultFS", "file:///")
             conf.set("mapreduce.framework.name", "local")
+            conf.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem")
+            conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem")
             logger.info("💻 Running in local mode.")
         }
 
