@@ -1,11 +1,11 @@
 package rag
 
-import sttp.client3.*
-import sttp.client3.circe.*
 import io.circe.*
 import io.circe.parser.*
-import io.circe.syntax.*
+import sttp.client3.*
+
 import scala.concurrent.duration.DurationInt
+import util.Settings
 
 
 class Ollama(base: String):
@@ -72,7 +72,7 @@ class Ollama(base: String):
             .post(chatUrl)
             .body(json.noSpaces)
             .response(asStringAlways)
-            .readTimeout(5.minutes)
+            .readTimeout(Settings.ollama.timeout.minutes)
 
         val res = req.send(backend)
 

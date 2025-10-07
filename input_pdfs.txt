@@ -1,1 +1,8 @@
 src/main/resources/MSRCorpus/1083142.1083143.pdf
+src/main/resources/MSRCorpus/1083142.1083144.pdf
+src/main/resources/MSRCorpus/1083142.1083145.pdf
+src/main/resources/MSRCorpus/1083142.1083146.pdf
+src/main/resources/MSRCorpus/1083142.1083147.pdf
+src/main/resources/MSRCorpus/1083142.1083148.pdf
+src/main/resources/MSRCorpus/1083142.1083149.pdf
+src/main/resources/MSRCorpus/1083142.1083150.pdf
