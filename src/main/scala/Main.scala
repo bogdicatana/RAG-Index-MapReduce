@@ -95,7 +95,7 @@ object Main {
         }
 
         // Explicitly create Array[DirectoryReader]
-        val multiReader = new MultiReader(readers.toArray[DirectoryReader]: _*)
+        val multiReader = new MultiReader(readers.toArray[DirectoryReader]*)
         val searcher = new IndexSearcher(multiReader)
         val parser = new QueryParser("text", analyzer)
         val query: Query = parser.parse(QueryParserBase.escape(queryText))

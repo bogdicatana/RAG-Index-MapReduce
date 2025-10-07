@@ -2,22 +2,31 @@ import sbt.Keys.libraryDependencies
 
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.3.6"
+ThisBuild / scalaVersion := "3.4.0"
 
 lazy val root = (project in file("."))
     .settings(
         name := "cs441hw1",
+        Compile / mainClass := Some("Main"),
+
+        // Don't include test classes in the final JAR
+        Test / test := {},
+
+        // Avoid packaging Hadoop or AWS SDK classes (already provided in EMR)
+        //    assemblyExcludedJars := {
+        //      val cp = (assembly / fullClasspath).value
+        //      cp.filter { attributed =>
+        //        val name = attributed.data.getName
+        //        name.contains("hadoop") || name.contains("aws")
+        //      }
+        //    },
+
+        // Merge strategy to handle duplicate META-INF files (common with logging libs)
         assembly / assemblyMergeStrategy := {
-            case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
-            case PathList("META-INF", "INDEX.LIST") => MergeStrategy.discard
-            case PathList("META-INF", xs @ _*) if xs.last.endsWith(".SF") ||
-                xs.last.endsWith(".DSA") ||
-                xs.last.endsWith(".RSA") =>
-                MergeStrategy.discard
-
-            // concat all service loader files
             case PathList("META-INF", "services", xs @ _*) => MergeStrategy.concat
-
+            case PathList("META-INF", "spring.tooling", xs @ _*) => MergeStrategy.concat
+            case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+            case "reference.conf" => MergeStrategy.concat
             case x => MergeStrategy.first
         },
         libraryDependencies ++= Seq(
@@ -38,6 +47,7 @@ lazy val root = (project in file("."))
             "org.apache.hadoop" % "hadoop-common" % "3.4.2",
             "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % "3.4.2",
             "org.scalactic" %% "scalactic" % "3.2.19",
+            "dnsjava" % "dnsjava" % "3.6.3",
             "org.scalatest" %% "scalatest" % "3.2.17" % Test
         )
     )
