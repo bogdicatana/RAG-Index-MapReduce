@@ -11,7 +11,7 @@ object Settings {
 
     final case class ChunkerSettings(maxChars: Int, overlap: Int)
 
-    final case class OutputSettings(outputDir: String, mergeDir: String)
+    final case class OutputSettings(outputDir: String)
 
     val ollama = OllamaSettings(
         config.getString("rag-builder.ollama.host"),
@@ -35,9 +35,12 @@ object Settings {
         config.getInt("rag-builder.mapReduce.numReduceJobs")
     }
 
+    lazy val pdfsPerSplit: Int = {
+        config.getInt("rag-builder.input.pdfsPerSplit")
+    }
+
     lazy val output = OutputSettings(
-        config.getString("rag-builder.output.outputDir"),
-        config.getString("rag-builder.output.mergeDir")
+        config.getString("rag-builder.output.outputDir")
     )
 
     // --- 🧠 Word Relation Settings ---

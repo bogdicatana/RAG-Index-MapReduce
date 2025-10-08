@@ -12,6 +12,7 @@ import org.apache.lucene.store.FSDirectory
 import org.slf4j.LoggerFactory
 import util.*
 import rag.*
+import org.apache.hadoop.mapreduce.lib.input.NLineInputFormat
 
 import java.io.{BufferedWriter, File, FileWriter}
 import java.nio.file.Files
@@ -41,6 +42,13 @@ object Main {
             conf.set("mapreduce.framework.name", "local")
             conf.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem")
             conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem")
+            conf.set("mapreduce.job.local.address", "127.0.0.1")
+            conf.set("mapreduce.jobtracker.address", "127.0.0.1:8021")
+            conf.set("yarn.resourcemanager.hostname", "127.0.0.1")
+            conf.set("yarn.nodemanager.hostname", "127.0.0.1")
+            conf.set("mapreduce.map.java.opts", "-Dsun.net.spi.nameservice.provider.1=default")
+            conf.set("mapreduce.reduce.java.opts", "-Dsun.net.spi.nameservice.provider.1=default")
+            conf.setInt("mapreduce.local.map.tasks.maximum", Settings.numReduceJobs)
             logger.info("💻 Running in local mode.")
         }
 
@@ -62,9 +70,11 @@ object Main {
             job.setOutputKeyClass(classOf[Text])
             job.setOutputValueClass(classOf[Text])
             job.setNumReduceTasks(Settings.numReduceJobs)
+            job.setInputFormatClass(classOf[NLineInputFormat])
 
             FileInputFormat.setInputDirRecursive(job, true)
             FileInputFormat.addInputPaths(job, input)
+            NLineInputFormat.setNumLinesPerSplit(job, Settings.pdfsPerSplit)
             FileOutputFormat.setOutputPath(job, outputPath)
 
             val success = job.waitForCompletion(true)

@@ -23,10 +23,14 @@ lazy val root = (project in file("."))
 
         // Merge strategy to handle duplicate META-INF files (common with logging libs)
         assembly / assemblyMergeStrategy := {
-            case PathList("META-INF", "services", xs @ _*) => MergeStrategy.concat
+            case PathList("META-INF", "services", "java.net.spi.InetAddressResolverProvider") => MergeStrategy.discard // <--- DISCARD THE FAULTY FILE
+            case PathList("META-INF", "services", xs @ _*) => MergeStrategy.concat // Keep other service files merged
             case PathList("META-INF", "spring.tooling", xs @ _*) => MergeStrategy.concat
             case PathList("META-INF", xs @ _*) => MergeStrategy.discard
             case "reference.conf" => MergeStrategy.concat
+            case "application.conf" => MergeStrategy.concat
+            case PathList(ps @ _*) if ps.last.matches(".*.RSA|.*.DSA|.*.SF") => MergeStrategy.discard
+            case "package.html" => MergeStrategy.discard
             case x => MergeStrategy.first
         },
         libraryDependencies ++= Seq(
