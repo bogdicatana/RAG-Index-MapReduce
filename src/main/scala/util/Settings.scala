@@ -34,7 +34,11 @@ object Settings {
     lazy val numReduceJobs: Int = {
         config.getInt("rag-builder.mapReduce.numReduceJobs")
     }
-
+    
+    lazy val numMappers: Int = {
+        config.getInt("rag-builder.mapReduce.numMappers")
+    }
+    
     lazy val pdfsPerSplit: Int = {
         config.getInt("rag-builder.input.pdfsPerSplit")
     }

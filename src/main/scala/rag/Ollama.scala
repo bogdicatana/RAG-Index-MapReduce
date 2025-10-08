@@ -33,6 +33,7 @@ class Ollama(base: String):
             .post(embedUrl)
             .body(json.noSpaces)
             .response(asStringAlways)
+            .readTimeout(Settings.ollama.timeout.minutes)
 
         val res = req.send(backend)
 

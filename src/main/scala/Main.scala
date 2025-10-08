@@ -28,29 +28,21 @@ object Main {
         val output = Settings.output.outputDir
         val queryText = Settings.ollama.query
 
-        // === 1️⃣ Detect environment (local vs EMR) ===
-        val isS3 = input.startsWith("s3://") || input.startsWith("s3a://") || output.startsWith("s3://") || output.startsWith("s3a://")
+        // === 1️⃣ Setup environment ===
 
         val conf = new Configuration()
-        if (isS3) {
-            conf.set("fs.defaultFS", "s3a://")
-            conf.set("mapreduce.framework.name", "yarn")
-            conf.set("mapreduce.job.reduces", Settings.numReduceJobs.toString)
-            logger.info("🌩 Running in EMR/S3 mode.")
-        } else {
-            conf.set("fs.defaultFS", "file:///")
-            conf.set("mapreduce.framework.name", "local")
-            conf.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem")
-            conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem")
-            conf.set("mapreduce.job.local.address", "127.0.0.1")
-            conf.set("mapreduce.jobtracker.address", "127.0.0.1:8021")
-            conf.set("yarn.resourcemanager.hostname", "127.0.0.1")
-            conf.set("yarn.nodemanager.hostname", "127.0.0.1")
-            conf.set("mapreduce.map.java.opts", "-Dsun.net.spi.nameservice.provider.1=default")
-            conf.set("mapreduce.reduce.java.opts", "-Dsun.net.spi.nameservice.provider.1=default")
-            conf.setInt("mapreduce.local.map.tasks.maximum", Settings.numReduceJobs)
-            logger.info("💻 Running in local mode.")
-        }
+        conf.set("fs.defaultFS", "file:///")
+        conf.set("mapreduce.framework.name", "local")
+//        conf.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem")
+//        conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem")
+//        conf.set("mapreduce.job.local.address", "127.0.0.1")
+//        conf.set("mapreduce.jobtracker.address", "127.0.0.1:8021")
+//        conf.set("yarn.resourcemanager.hostname", "127.0.0.1")
+//        conf.set("yarn.nodemanager.hostname", "127.0.0.1")
+//        conf.set("mapreduce.map.java.opts", "-Dsun.net.spi.nameservice.provider.1=default")
+//        conf.set("mapreduce.reduce.java.opts", "-Dsun.net.spi.nameservice.provider.1=default")
+        conf.setInt("mapreduce.local.map.tasks.maximum", Settings.numMappers)
+        logger.info("💻 Running in local mode.")
 
         val fs = FileSystem.get(conf)
         val outputPath = new Path(output)

@@ -12,15 +12,6 @@ lazy val root = (project in file("."))
         // Don't include test classes in the final JAR
         Test / test := {},
 
-        // Avoid packaging Hadoop or AWS SDK classes (already provided in EMR)
-        //    assemblyExcludedJars := {
-        //      val cp = (assembly / fullClasspath).value
-        //      cp.filter { attributed =>
-        //        val name = attributed.data.getName
-        //        name.contains("hadoop") || name.contains("aws")
-        //      }
-        //    },
-
         // Merge strategy to handle duplicate META-INF files (common with logging libs)
         assembly / assemblyMergeStrategy := {
             case PathList("META-INF", "services", "java.net.spi.InetAddressResolverProvider") => MergeStrategy.discard // <--- DISCARD THE FAULTY FILE
@@ -50,6 +41,9 @@ lazy val root = (project in file("."))
             "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.4.2",
             "org.apache.hadoop" % "hadoop-common" % "3.4.2",
             "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % "3.4.2",
+//            "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.4.2" % "provided",
+//            "org.apache.hadoop" % "hadoop-common" % "3.4.2" % "provided",
+//            "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % "3.4.2" % "provided",
             "org.scalactic" %% "scalactic" % "3.2.19",
             "dnsjava" % "dnsjava" % "3.6.3",
             "org.scalatest" %% "scalatest" % "3.2.17" % Test
