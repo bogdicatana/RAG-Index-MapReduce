@@ -38,12 +38,12 @@ lazy val root = (project in file("."))
             "ch.qos.logback" % "logback-classic" % "1.5.18",
             // Config library
             "com.typesafe" % "config" % "1.4.5",
-            "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.4.2",
-            "org.apache.hadoop" % "hadoop-common" % "3.4.2",
-            "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % "3.4.2",
-//            "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.4.2" % "provided",
-//            "org.apache.hadoop" % "hadoop-common" % "3.4.2" % "provided",
-//            "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % "3.4.2" % "provided",
+//            "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.4.2",
+//            "org.apache.hadoop" % "hadoop-common" % "3.4.2",
+//            "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % "3.4.2",
+            "org.apache.hadoop" % "hadoop-mapreduce-client-core" % "3.4.2" % "provided",
+            "org.apache.hadoop" % "hadoop-common" % "3.4.2" % "provided",
+            "org.apache.hadoop" % "hadoop-mapreduce-client-jobclient" % "3.4.2" % "provided",
             "org.scalactic" %% "scalactic" % "3.2.19",
             "dnsjava" % "dnsjava" % "3.6.3",
             "org.scalatest" %% "scalatest" % "3.2.17" % Test
