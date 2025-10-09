@@ -1,5 +1,7 @@
 # cs441hw1 Bogdan Catana (bcata2@uic.edu)
 
+### Video of aws demo: https://youtu.be/xv1wp4rYpQM
+
 ## RAG Indexing and Querying with MapReduce
 
 This project implements a **Retrieval-Augmented Generation (RAG)** pipeline using **Hadoop MapReduce** to build an index from a corpus of PDF documents. The index is built using **Apache Lucene**, and the RAG process is completed by querying the index and using the retrieved context to summarize an answer with an **Ollama** large language model (LLM). The entire pipeline is written in **Scala**.
