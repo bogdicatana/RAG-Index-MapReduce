@@ -1,4 +1,4 @@
-# cs441hw1 Bogdan Catana (bcata2@uic.edu)
+### This was a homework for the Cloud Computing class at UIC with [Dr. Mark Grechanik](https://www.cs.uic.edu/~drmark/)
 
 ### Video of aws demo: https://youtu.be/xv1wp4rYpQM
 
